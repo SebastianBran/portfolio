@@ -7,7 +7,6 @@ export function NoiseTexture() {
       <filter id="noise">
         <feTurbulence
           type="fractalNoise"
-          baseFrequency="0.80"
           numOctaves={4}
           stitchTiles="stitch"
         />
