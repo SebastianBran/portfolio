@@ -32,7 +32,7 @@ function StackPage() {
                     className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)]/60 p-4 backdrop-blur-sm transition-colors hover:border-accent-500/50"
                   >
                     <img
-                      src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${item.icon}/${item.icon}-original.svg`}
+                      src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${item.icon}/${item.icon}-original${item.extension ?? ""}.svg`}
                       alt={item.name}
                       className="size-8"
                       loading="lazy"
