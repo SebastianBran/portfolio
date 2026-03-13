@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, Mail, type LucideIcon } from "lucide-react";
+import { Github, Linkedin, Mail, type LucideIcon } from "lucide-react";
 
 export interface SocialLink {
   name: string;
@@ -9,22 +9,17 @@ export interface SocialLink {
 export const socialLinks: SocialLink[] = [
   {
     name: "GitHub",
-    href: "https://github.com/estefanobran",
+    href: "https://github.com/SebastianBran",
     icon: Github,
   },
   {
     name: "LinkedIn",
-    href: "https://linkedin.com/in/estefanobran",
+    href: "https://www.linkedin.com/in/estefano-sebastian-bran-zapata-b577961b8/?locale=en_US",
     icon: Linkedin,
   },
   {
-    name: "Twitter",
-    href: "https://twitter.com/estefanobran",
-    icon: Twitter,
-  },
-  {
     name: "Email",
-    href: "mailto:hello@estefanobran.dev",
+    href: "mailto:sebastianbranzapata@gmail.com",
     icon: Mail,
   },
 ];

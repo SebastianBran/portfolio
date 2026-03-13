@@ -23,7 +23,7 @@ export function ContactSection() {
             const message = (
               form.elements.namedItem("message") as HTMLTextAreaElement
             ).value;
-            window.location.href = `mailto:hello@estefanobran.dev?subject=Contact from ${name}&body=${encodeURIComponent(`From: ${name} (${email})\n\n${message}`)}`;
+            window.location.href = `mailto:sebastianbranzapata@gmail.com?subject=Contact from ${name}&body=${encodeURIComponent(`From: ${name} (${email})\n\n${message}`)}`;
           }}
           className="space-y-4"
         >

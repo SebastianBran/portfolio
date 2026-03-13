@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 const skills = [
   "API Design",
   "Microservices",
-  "System Design",
   "Cloud Architecture",
   "CI/CD",
   "Testing",
-  "Performance Optimization",
+  "Infrastructure as Code",
+  "Full Stack Development",
   "Database Design",
 ];
 
@@ -23,33 +23,35 @@ function AboutPage() {
     <>
       <SeoHead
         title="About"
-        description="Learn more about Estefano Bran, a Software Engineer & Backend Developer."
+        description="Learn more about Estefano Bran, a Software Engineer specializing in Backend Development, Cloud & DevOps."
       />
       <SectionWrapper id="about-page" title="About Me">
         <div className="space-y-6">
           <p className="text-lg leading-relaxed text-[var(--muted-foreground)]">
-            Hi, I'm Estefano — a Software Engineer based in Lima, Peru, with a
-            deep passion for backend development and distributed systems. Over
-            the past 5+ years, I've had the privilege of working on projects
-            ranging from fintech platforms to developer tools.
+            Hi, I'm Estefano — a Software Engineer based in Lima, Peru, with 3+
+            years of experience building scalable, cloud-native applications
+            across fintech, e-commerce, and enterprise environments.
           </p>
           <p className="leading-relaxed text-[var(--muted-foreground)]">
-            My journey in software started with a curiosity about how things
-            work under the hood. That curiosity led me to backend development,
-            where I found my sweet spot — building the invisible infrastructure
-            that powers modern applications.
+            I specialize in backend development using Node.js, NestJS, and Spring Boot. 
+            I also have experience with modern frontend frameworks such as React and Next.js. 
+            Additionally, I have worked with cloud infrastructure on AWS, Azure, and Oracle Cloud,
+            as well as Infrastructure as Code (IaC) using Terraform.
           </p>
           <p className="leading-relaxed text-[var(--muted-foreground)]">
-            I specialize in designing scalable APIs, building event-driven
-            architectures, and optimizing database performance. I'm a strong
-            advocate for clean code, comprehensive testing, and developer
-            experience.
+            I graduated from Universidad Peruana de Ciencias Aplicadas (UPC)
+            with a degree in Software Engineering, earning a full Beca 18
+            scholarship and recognition for academic excellence. I've also
+            competed in ICPC South America and IEEE Xtreme, and co-authored a
+            scientific publication on blockchain and health records
+            interoperability.
           </p>
           <p className="leading-relaxed text-[var(--muted-foreground)]">
-            When I'm not writing code, I contribute to open-source projects,
-            write technical blog posts, and experiment with new programming
-            languages. I believe in continuous learning and sharing knowledge
-            with the community.
+            I've worked with companies like Kyndryl and Avatar Global,
+            delivering production-grade solutions for clients including
+            Credicorp, Interbank, DVP, and Mayoral. I thrive in remote
+            cross-functional teams and enjoy tackling complex technical
+            challenges.
           </p>
 
           <div className="mt-8">

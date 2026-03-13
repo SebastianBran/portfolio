@@ -12,11 +12,22 @@ export const stackCategories: StackCategory[] = [
   {
     name: "Languages",
     items: [
-      { name: "TypeScript", icon: "typescript" },
-      { name: "Python", icon: "python" },
-      { name: "Go", icon: "go" },
-      { name: "Rust", icon: "rust" },
       { name: "JavaScript", icon: "javascript" },
+      { name: "TypeScript", icon: "typescript" },
+      { name: "Java", icon: "java" },
+      { name: "Python", icon: "python" },
+      { name: "SQL", icon: "postgresql" },
+    ],
+  },
+  {
+    name: "Frontend",
+    items: [
+      { name: "React", icon: "react" },
+      { name: "Next.js", icon: "nextjs" },
+      { name: "React Native", icon: "react" },
+      { name: "Tailwind", icon: "tailwindcss" },
+      { name: "HTML5", icon: "html5" },
+      { name: "CSS3", icon: "css3" },
     ],
   },
   {
@@ -25,25 +36,37 @@ export const stackCategories: StackCategory[] = [
       { name: "Node.js", icon: "nodejs" },
       { name: "NestJS", icon: "nestjs" },
       { name: "Express", icon: "express" },
-      { name: "FastAPI", icon: "fastapi" },
+      { name: "Spring Boot", icon: "spring" },
+      { name: "GraphQL", icon: "graphql" },
     ],
   },
   {
     name: "Databases",
     items: [
       { name: "PostgreSQL", icon: "postgresql" },
+      { name: "MySQL", icon: "mysql" },
+      { name: "SQL Server", icon: "microsoftsqlserver" },
       { name: "MongoDB", icon: "mongodb" },
-      { name: "Redis", icon: "redis" },
-      { name: "InfluxDB", icon: "influxdb" },
     ],
   },
   {
     name: "DevOps & Cloud",
     items: [
+      { name: "AWS", icon: "amazonwebservices" },
+      { name: "Azure", icon: "azure" },
+      { name: "Oracle Cloud", icon: "oracle" },
       { name: "Docker", icon: "docker" },
       { name: "Kubernetes", icon: "kubernetes" },
-      { name: "AWS", icon: "amazonwebservices" },
+      { name: "Terraform", icon: "terraform" },
       { name: "GitHub Actions", icon: "githubactions" },
+      { name: "Firebase", icon: "firebase" },
+    ],
+  },
+  {
+    name: "Testing",
+    items: [
+      { name: "Jest", icon: "jest" },
+      { name: "React Testing Library", icon: "testinglibrary" },
     ],
   },
   {
@@ -52,7 +75,7 @@ export const stackCategories: StackCategory[] = [
       { name: "Git", icon: "git" },
       { name: "Linux", icon: "linux" },
       { name: "VS Code", icon: "vscode" },
-      { name: "Neovim", icon: "neovim" },
+      { name: "Nginx", icon: "nginx" },
     ],
   },
 ];

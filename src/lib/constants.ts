@@ -1,9 +1,9 @@
 export const SITE_CONFIG = {
   name: "Estefano Bran",
-  title: "Software Engineer & Backend Developer",
-  tagline: "Building robust systems, one API at a time.",
+  title: "Software Engineer | Backend Developer | Cloud & DevOps",
+  tagline: "Building scalable, cloud-native applications.",
   description:
-    "Software Engineer and Backend Developer passionate about building scalable systems, clean architectures, and developer tools.",
+    "Software Engineer with 3+ years of experience building scalable, cloud-native applications across fintech, e-commerce, and enterprise environments.",
   url: "https://estefanobran.dev",
   ogImage: "/og-image.png",
 };

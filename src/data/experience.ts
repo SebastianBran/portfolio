@@ -8,51 +8,28 @@ export interface Experience {
 
 export const experience: Experience[] = [
   {
-    company: "TechCorp Solutions",
-    role: "Senior Backend Engineer",
-    period: "Jan 2024 — Present",
+    company: "Kyndryl",
+    role: "Software Engineer – Technical Specialist",
+    period: "Aug 2025 — Present",
     description:
-      "Leading backend architecture for a microservices platform serving 2M+ daily active users.",
+      "Delivering technical solutions for enterprise clients across infrastructure, frontend, and backend projects.",
     highlights: [
-      "Reduced API latency by 40% through query optimization and caching strategies",
-      "Designed event-driven architecture using Kafka for real-time data processing",
-      "Mentored 4 junior engineers and established code review practices",
+      "Designed reusable Terraform modules for Oracle Cloud Infrastructure (OCI) and contributed to a corporate landing zone at Credicorp",
+      "Developed the frontend of an internal chatbot for Interbank call center agents using Angular 19 with hexagonal architecture",
+      "Built an on-premise infrastructure testing application for CCE using Spring Boot, Docker, Kubernetes, Kafka, and an observability stack with Grafana, Prometheus, and Loki",
     ],
   },
   {
-    company: "DataStream Inc.",
-    role: "Backend Developer",
-    period: "Mar 2022 — Dec 2023",
+    company: "Avatar Global",
+    role: "Full Stack / Backend Engineer",
+    period: "Jan 2022 — Jul 2025",
     description:
-      "Built and maintained data processing pipelines and RESTful APIs for a fintech analytics platform.",
+      "Built and maintained scalable applications across fintech, e-commerce, and enterprise environments for international clients.",
     highlights: [
-      "Developed real-time transaction processing system handling 10K events/sec",
-      "Implemented CI/CD pipelines reducing deployment time by 60%",
-      "Migrated monolith to microservices architecture with zero downtime",
-    ],
-  },
-  {
-    company: "WebForge Studio",
-    role: "Full Stack Developer",
-    period: "Jun 2020 — Feb 2022",
-    description:
-      "Developed web applications and APIs for various clients across e-commerce and SaaS domains.",
-    highlights: [
-      "Built custom e-commerce platform serving 50K+ monthly users",
-      "Designed and implemented RESTful APIs with comprehensive documentation",
-      "Introduced automated testing, increasing code coverage from 30% to 85%",
-    ],
-  },
-  {
-    company: "CodeLab Academy",
-    role: "Junior Developer",
-    period: "Jan 2019 — May 2020",
-    description:
-      "Started career building internal tools and contributing to open-source projects.",
-    highlights: [
-      "Developed internal dashboard for tracking student progress",
-      "Contributed to 3 open-source Node.js libraries",
-      "Automated data migration scripts saving 20+ hours of manual work weekly",
+      "Developed backend features and integrated Webpay payment gateway APIs for DVP (Chile) using Node.js",
+      "Implemented frontend features for Mayoral (Spain) using Next.js, React, TypeScript, Material UI, and GraphQL with Apollo Client",
+      "Migrated backend services from Java to Express.js and developed back-office services using NestJS for Avatar OMS",
+      "Designed a notification service for Apuesta Total using NestJS with DDD, integrating Firebase Cloud Messaging and Huawei Push Kit",
     ],
   },
 ];
