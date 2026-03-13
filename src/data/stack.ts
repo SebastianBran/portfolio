@@ -1,6 +1,7 @@
 export interface StackItem {
   name: string;
   icon: string;
+  extension?: string;
 }
 
 export interface StackCategory {
@@ -52,7 +53,7 @@ export const stackCategories: StackCategory[] = [
   {
     name: "DevOps & Cloud",
     items: [
-      { name: "AWS", icon: "amazonwebservices" },
+      { name: "AWS", icon: "amazonwebservices", extension: "-wordmark" },
       { name: "Azure", icon: "azure" },
       { name: "Oracle Cloud", icon: "oracle" },
       { name: "Docker", icon: "docker" },
@@ -66,7 +67,7 @@ export const stackCategories: StackCategory[] = [
     name: "Testing",
     items: [
       { name: "Jest", icon: "jest" },
-      { name: "React Testing Library", icon: "testinglibrary" },
+      { name: "React Testing Library", icon: "react" },
     ],
   },
   {

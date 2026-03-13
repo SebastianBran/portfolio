@@ -15,7 +15,7 @@ function StackCategoryCard({ category }: { category: StackCategory }) {
             className="flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-[var(--muted)]"
           >
             <img
-              src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${item.icon}/${item.icon}-original.svg`}
+              src={`https://cdn.jsdelivr.net/gh/devicons/devicon/icons/${item.icon}/${item.icon}-original${item.extension ?? ""}.svg`}
               alt={item.name}
               className="size-6"
               loading="lazy"
