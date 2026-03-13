@@ -10,6 +10,25 @@ const mdxModules = import.meta.glob<{ default: ComponentType }>(
   "../../content/blog/*.mdx",
 );
 
+const MISSING_CONTENT: ComponentType = () => <p>Post content not found.</p>;
+
+const mdxContentBySlug = Object.fromEntries(
+  Object.entries(mdxModules).map(([path, loader]) => {
+    const slug =
+      path
+        .split("/")
+        .pop()
+        ?.replace(/\.mdx$/, "") ?? "";
+    return [
+      slug,
+      lazy(async () => {
+        const mod = await loader();
+        return { default: mod.default as ComponentType };
+      }),
+    ];
+  }),
+) as Record<string, ComponentType>;
+
 export const Route = createFileRoute("/blog/$slug")({
   component: BlogPostPage,
   loader: ({ params }) => {
@@ -21,18 +40,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogPostPage() {
   const { post } = Route.useLoaderData();
-
-  const MdxContent = lazy(async () => {
-    const key = `../../content/blog/${post.slug}.mdx`;
-    const loader = mdxModules[key];
-    if (!loader) {
-      return {
-        default: (() => <p>Post content not found.</p>) as ComponentType,
-      };
-    }
-    const mod = await loader();
-    return { default: mod.default as ComponentType };
-  });
+  const MdxContent = mdxContentBySlug[post.slug] ?? MISSING_CONTENT;
 
   return (
     <>
