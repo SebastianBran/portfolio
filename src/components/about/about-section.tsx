@@ -5,7 +5,7 @@ const interests = [
   "Cloud Architecture",
   "API Design",
   "DevOps",
-  "Full Stack Development",
+  "Backend Development",
   "Clean Code",
   "Competitive Programming",
 ];
@@ -59,8 +59,8 @@ export function AboutSection() {
             <ul className="space-y-1 text-sm text-[var(--muted-foreground)]">
               <li>3+ years of experience</li>
               <li>Based in Lima, Peru</li>
-              <li>AWS & Azure certified</li>
-              <li>ICPC competitor</li>
+              <li>AWS, Azure & Oracle certified</li>
+              <li>ICPC & IEEE Xtreme competitor</li>
             </ul>
           </div>
         </div>
