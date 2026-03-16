@@ -33,7 +33,7 @@ export function AboutSection() {
             delivering production-grade solutions for international clients.
           </p>
           <p className="text-[var(--muted-foreground)] leading-relaxed">
-            I hold a degree in Software Engineering from UPC (Lima, Peru) and was 
+            I hold a degree in Software Engineering from UPC (Lima, Peru), and I was 
             recognized for academic excellence throughout my studies. I've also 
             participated in ICPC and IEEE Xtreme competitive programming contests.
           </p>

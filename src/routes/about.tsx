@@ -39,9 +39,8 @@ function AboutPage() {
             as well as Infrastructure as Code (IaC) using Terraform.
           </p>
           <p className="leading-relaxed text-[var(--muted-foreground)]">
-            I graduated from Universidad Peruana de Ciencias Aplicadas (UPC)
-            with a degree in Software Engineering, earning a full Beca 18
-            scholarship and recognition for academic excellence. I've also
+            I graduated from the Peruvian University of Applied Sciences (UPC) with a degree 
+            in Software Engineering and an award for academic excellence. I've also
             competed in ICPC South America and IEEE Xtreme, and co-authored a
             scientific publication on blockchain and health records
             interoperability.
