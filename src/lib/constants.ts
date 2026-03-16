@@ -3,7 +3,7 @@ export const SITE_CONFIG = {
   title: "Software Engineer | Backend Developer | Cloud & DevOps",
   tagline: "Building scalable, cloud-native applications.",
   description:
-    "Software Engineer with 3+ years of experience building scalable, cloud-native applications across fintech, e-commerce, and enterprise environments.",
+    "Software Engineer with 4+ years of experience building scalable, cloud-native applications across fintech, e-commerce, and enterprise environments.",
   url: "https://estefanobran.dev",
   ogImage: "/og-image.png",
 };

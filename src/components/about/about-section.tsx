@@ -20,7 +20,7 @@ export function AboutSection() {
       <div className="grid gap-8 md:grid-cols-5">
         <div className="space-y-4 md:col-span-3">
           <p className="text-[var(--muted-foreground)] leading-relaxed">
-            I'm a Software Engineer with 3+ years of experience building
+            I'm a Software Engineer with 4+ years of experience building
             scalable, cloud-native applications across fintech, e-commerce, and
             enterprise environments. I specialize in backend development using 
             Node.js, NestJS and Spring Boot. I also have experience with modern
@@ -33,10 +33,9 @@ export function AboutSection() {
             delivering production-grade solutions for international clients.
           </p>
           <p className="text-[var(--muted-foreground)] leading-relaxed">
-            I hold a degree in Software Engineering from UPC (Lima, Peru) with a
-            full scholarship (Beca 18) and was recognized for academic
-            excellence throughout my studies. I've also participated in ICPC and
-            IEEE Xtreme competitive programming contests.
+            I hold a degree in Software Engineering from UPC (Lima, Peru) and was 
+            recognized for academic excellence throughout my studies. I've also 
+            participated in ICPC and IEEE Xtreme competitive programming contests.
           </p>
         </div>
         <div className="flex flex-col gap-4 md:col-span-2">
@@ -57,7 +56,7 @@ export function AboutSection() {
               Quick Facts
             </h3>
             <ul className="space-y-1 text-sm text-[var(--muted-foreground)]">
-              <li>3+ years of experience</li>
+              <li>4+ years of experience</li>
               <li>Based in Lima, Peru</li>
               <li>AWS, Azure & Oracle certified</li>
               <li>ICPC & IEEE Xtreme competitor</li>

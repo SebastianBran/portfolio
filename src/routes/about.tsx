@@ -28,7 +28,7 @@ function AboutPage() {
       <SectionWrapper id="about-page" title="About Me">
         <div className="space-y-6">
           <p className="text-lg leading-relaxed text-[var(--muted-foreground)]">
-            Hi, I'm Estefano — a Software Engineer based in Lima, Peru, with 3+
+            Hi, I'm Estefano — a Software Engineer based in Lima, Peru, with 4+
             years of experience building scalable, cloud-native applications
             across fintech, e-commerce, and enterprise environments.
           </p>
