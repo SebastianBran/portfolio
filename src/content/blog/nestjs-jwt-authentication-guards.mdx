@@ -1,0 +1,374 @@
+Authentication is one of those problems that looks simple until you implement it in production. In this article I'll walk through the full JWT authentication system I built for a NestJS REST API, covering the global guard pattern, passport strategy, custom decorators, rate limiting, and how to extend it with refresh tokens.
+
+## Dependencies
+
+```bash
+npm install @nestjs/jwt @nestjs/passport passport passport-jwt bcrypt @nestjs/throttler
+npm install -D @types/passport-jwt @types/bcrypt
+```
+
+## Centralized Config
+
+Never hardcode secrets. Use `@nestjs/config` with a typed configuration factory:
+
+```typescript
+// src/config/configuration.ts
+export default () => ({
+  jwt: {
+    secret: process.env.JWT_SECRET || "default-secret-change-me",
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  },
+});
+```
+
+```env
+JWT_SECRET=your-super-secret-key-change-in-production
+JWT_EXPIRES_IN=7d
+```
+
+## Auth Module Setup
+
+```typescript
+// src/modules/auth/auth.module.ts
+@Module({
+  imports: [
+    UsersModule,
+    PassportModule.register({ defaultStrategy: "jwt" }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>("jwt.secret"),
+        signOptions: { expiresIn: "7d" },
+      }),
+    }),
+  ],
+  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController],
+  exports: [AuthService],
+})
+export class AuthModule {}
+```
+
+`JwtModule.registerAsync` defers initialization until `ConfigService` is available — this is important when reading from environment variables.
+
+## The Login Flow
+
+The `AuthService` handles three checks in order: user existence, password validation, and account status. The error messages are intentionally identical for the first two checks to avoid user enumeration:
+
+```typescript
+// src/modules/auth/domain/services/auth-domain.service.ts
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const user = await this.usersService.findByEmail(loginDto.email);
+
+    if (!user) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("Invalid credentials"); // same message — no enumeration
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException("User is inactive");
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    };
+  }
+}
+```
+
+Using `bcrypt.compare` directly in the service (rather than a local Passport strategy) gives you full control over the error messages and the order of checks.
+
+## DTOs with Validation
+
+```typescript
+// src/modules/auth/application/dto/login.dto.ts
+export class LoginDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
+```
+
+Pair this with `ValidationPipe` registered globally in `main.ts`:
+
+```typescript
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true, // strips unknown properties
+    forbidNonWhitelisted: true,
+    transform: true,
+  }),
+);
+```
+
+## The JWT Strategy
+
+The strategy runs on every authenticated request. Notice that it hits the database to verify the user is still active — this makes instant revocation possible by setting `isActive = false`:
+
+```typescript
+// src/modules/auth/infrastructure/strategies/jwt.strategy.ts
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  role: string;
+}
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+  ) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: configService.get<string>("jwt.secret"),
+    });
+  }
+
+  async validate(payload: JwtPayload) {
+    const user = await this.usersService.findById(payload.sub);
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException("User not found or inactive");
+    }
+
+    return { id: user.id, email: user.email, name: user.name, role: user.role };
+  }
+}
+```
+
+The return value of `validate()` is what Passport attaches to `request.user`. Keep it lean — only what route handlers actually need.
+
+## The Global JWT Guard
+
+The most important architectural decision: register the guard **globally** via `APP_GUARD`. This means every route is protected by default and you opt-out with a decorator:
+
+```typescript
+// src/app.module.ts
+providers: [
+  {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard,   // rate limiting first
+  },
+  {
+    provide: APP_GUARD,
+    useClass: JwtAuthGuard,     // then auth
+  },
+],
+```
+
+```typescript
+// src/modules/auth/infrastructure/guards/jwt-auth.guard.ts
+@Injectable()
+export class JwtAuthGuard extends AuthGuard("jwt") {
+  constructor(private reflector: Reflector) {
+    super();
+  }
+
+  canActivate(context: ExecutionContext) {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) return true;
+
+    return super.canActivate(context);
+  }
+}
+```
+
+`Reflector.getAllAndOverride` checks the handler first, then the class — so `@Public()` works on both individual endpoints and entire controllers.
+
+## The @Public() Decorator
+
+```typescript
+// src/common/decorators/public.decorator.ts
+export const IS_PUBLIC_KEY = "isPublic";
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+```
+
+Usage:
+
+```typescript
+@Public()
+@Post('login')
+@HttpCode(HttpStatus.OK)
+async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+  return this.authService.login(loginDto);
+}
+```
+
+The `@Public()` decorator tells the global guard to skip JWT verification for that endpoint.
+
+## The @CurrentUser() Decorator
+
+Instead of pulling `request.user` manually in every controller, create a param decorator:
+
+```typescript
+// src/common/decorators/current-user.decorator.ts
+export const CurrentUser = createParamDecorator(
+  (data: keyof AuthenticatedUser | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
+    const user = request.user;
+    if (!user) return null;
+    return data ? user[data] : user;
+  },
+);
+```
+
+Usage in any protected route:
+
+```typescript
+// Get the full user object
+@Get('profile')
+getProfile(@CurrentUser() user: AuthenticatedUser) {
+  return user;
+}
+
+// Get a single field
+@Get('orders')
+getOrders(@CurrentUser('id') userId: string) {
+  return this.ordersService.findByUser(userId);
+}
+```
+
+## Rate Limiting on the Login Endpoint
+
+The login endpoint needs tighter limits than the rest of the API to prevent brute-force attacks. Use `@Throttle` to override the global rate at the endpoint level:
+
+```typescript
+// Global: 60 req/min (configured in AppModule)
+// Login endpoint: 10 req/min (stricter)
+@Public()
+@Throttle({ default: { limit: 10, ttl: 60000 } })
+@Post('login')
+@HttpCode(HttpStatus.OK)
+async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+  return this.authService.login(loginDto);
+}
+```
+
+## Extending with Refresh Tokens
+
+The current implementation uses a single access token with a 7-day expiry. For tighter security, you can add a refresh token flow. The idea is:
+
+- **Access token**: short-lived (15 minutes), used in every request
+- **Refresh token**: long-lived (7 days), used only to issue new access tokens, stored hashed in the database
+
+Here's the shape of the extended auth response:
+
+```typescript
+export class AuthResponseDto {
+  accessToken: string;
+  refreshToken: string;
+  user: { id: string; email: string; name: string; role: string };
+}
+```
+
+The login method generates both tokens. The refresh token is hashed with bcrypt before storing it — so even if your database leaks, the raw tokens are never exposed:
+
+```typescript
+async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  // ... existing validation ...
+
+  const payload = { sub: user.id, email: user.email, role: user.role };
+
+  const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+  const refreshToken = this.jwtService.sign(
+    { sub: user.id },
+    { expiresIn: '7d', secret: this.configService.get('jwt.refreshSecret') },
+  );
+
+  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+  await this.usersService.updateRefreshToken(user.id, hashedRefreshToken);
+
+  return { accessToken, refreshToken, user: { ... } };
+}
+```
+
+The refresh endpoint validates the incoming token against the stored hash and issues a new access token:
+
+```typescript
+@Public()
+@Post('refresh')
+async refresh(@Body('refreshToken') refreshToken: string): Promise<{ accessToken: string }> {
+  try {
+    const payload = this.jwtService.verify(refreshToken, {
+      secret: this.configService.get('jwt.refreshSecret'),
+    });
+
+    const user = await this.usersService.findById(payload.sub);
+    if (!user?.refreshToken) throw new UnauthorizedException();
+
+    const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    if (!isValid) throw new UnauthorizedException();
+
+    const newAccessToken = this.jwtService.sign(
+      { sub: user.id, email: user.email, role: user.role },
+      { expiresIn: '15m' },
+    );
+
+    return { accessToken: newAccessToken };
+  } catch {
+    throw new UnauthorizedException('Invalid refresh token');
+  }
+}
+```
+
+On logout, clear the stored hash so the refresh token becomes immediately invalid:
+
+```typescript
+@Post('logout')
+async logout(@CurrentUser('id') userId: string): Promise<void> {
+  await this.usersService.updateRefreshToken(userId, null);
+}
+```
+
+## Security Checklist
+
+Before going to production:
+
+- `JWT_SECRET` must be a long, random string (at least 64 characters)
+- Use separate secrets for access and refresh tokens
+- Enable `helmet()` to set HTTP security headers
+- Validate CORS origins via `CORS_ORIGINS` env var, never use `origin: '*'` in production
+- Never return the same error message for "user not found" and "wrong password" — keep it generic to prevent enumeration
+- Disable Swagger in production (`NODE_ENV !== 'production'` check)
+
+## Key Takeaways
+
+- Register the JWT guard **globally** and use `@Public()` to opt-out — safer than opt-in
+- Hit the **database in `validate()`** to enable instant user revocation
+- Use `@CurrentUser()` to cleanly inject the authenticated user in route handlers
+- Apply **endpoint-level rate limiting** on `/auth/login` to prevent brute force
+- When you add refresh tokens, store them **hashed** in the database — treat them like passwords

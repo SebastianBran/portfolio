@@ -1,0 +1,234 @@
+Modern distributed systems are hard to debug. When a transaction fails across three microservices, you need more than logs — you need **traces**, **metrics**, and **logs that reference each other**. This article walks through the full observability stack I set up for a Spring Boot 3 microservices project validated in an on-premise Kubernetes environment for a banking institution.
+
+## The Stack
+
+Instead of configuring each tool separately, everything is routed through an **OpenTelemetry Collector** that acts as a central hub:
+
+```
+Spring Boot services (OTel Java Agent)
+  └── OTLP gRPC (port 4317)
+        └── OTel Collector
+              ├── Traces  → Grafana Tempo
+              ├── Logs    → Grafana Loki
+              └── Metrics → Prometheus scrape endpoint
+                              └── Grafana (visualization)
+```
+
+The key decision here is **zero code changes** to the Spring Boot services. All telemetry is handled by the OTel Java auto-instrumentation agent, which is injected at container startup.
+
+## Maven Dependencies
+
+You only need `spring-boot-starter-actuator` in your `pom.xml`. No Micrometer bridges, no OTel SDK — the agent handles everything automatically:
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+The agent instruments Spring MVC, JDBC, Redis, Kafka, IBM MQ, and more out of the box. This is the biggest advantage of the agent approach: you get traces for every component without any manual span creation.
+
+## Injecting the OTel Agent via Dockerfile
+
+The agent is downloaded at image build time and attached with `-javaagent` at runtime. All configuration is done via environment variables — no changes to `application.yml` needed:
+
+```dockerfile
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
+WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
+
+FROM registry.access.redhat.com/ubi9/openjdk-21
+WORKDIR /app
+
+ENV OTEL_AGENT_VERSION=2.19.0
+RUN curl -L https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \
+    -o opentelemetry-javaagent.jar
+
+COPY --from=builder /app/target/*.jar app.jar
+
+EXPOSE 8080
+ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-jar", "app.jar"]
+```
+
+Then pass the OTLP endpoint as environment variables when you run the container:
+
+```yaml
+# docker-compose.yml
+environment:
+  OTEL_SERVICE_NAME: directory-service
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+  OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+```
+
+## application.yml: Sampling and Log Correlation
+
+Two settings matter here. First, enable 100% trace sampling (you can lower this in production):
+
+```yaml
+management:
+  tracing:
+    sampling:
+      probability: 1
+```
+
+Second, and this is the most valuable part, inject `trace_id` and `span_id` into every log line via MDC:
+
+```yaml
+logging:
+  pattern:
+    level: "trace_id=%mdc{trace_id} span_id=%mdc{span_id} trace_flags=%mdc{trace_flags} %5p"
+```
+
+With this pattern, every log line emitted during a traced request automatically carries the trace ID. In Grafana, you can click on a log line and jump directly to the corresponding trace in Tempo. This is the feature that makes the stack truly powerful.
+
+## OpenTelemetry Collector Configuration
+
+The collector receives all signals from services and routes them to the right backend:
+
+```yaml
+# otel-config.yml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  otlp:
+    endpoint: tempo:4317 # traces → Tempo
+    tls:
+      insecure: true
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp # logs → Loki
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 0.0.0.0:8889 # metrics exposed for Prometheus to scrape
+
+processors:
+  batch: {}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/loki]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+```
+
+Notice that Prometheus **does not scrape the Spring Boot services directly** — it scrapes the collector's Prometheus exporter on port `8889`. This keeps the services decoupled from the metrics backend.
+
+## Prometheus Configuration
+
+Since Prometheus only talks to the collector, the config is minimal:
+
+```yaml
+# prometheus-config.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8889"]
+```
+
+## Tempo Configuration
+
+Tempo receives traces from the collector via OTLP gRPC. For a POC, local storage is fine:
+
+```yaml
+# tempo-config.yml
+server:
+  http_listen_port: 3100
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+ingester:
+  trace_idle_period: 10s
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 1h # increase this for production
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/traces
+```
+
+For production, swap `backend: local` for `backend: s3` or `backend: gcs` with an appropriate bucket configuration.
+
+## Kubernetes Manifests
+
+The same stack deploys to Kubernetes with minimal changes. The main difference is that service names use the `-svc` DNS suffix:
+
+```yaml
+# kubernetes/otel-collector.yml (ConfigMap excerpt)
+exporters:
+  otlp:
+    endpoint: tempo-svc:4317
+  otlphttp/loki:
+    endpoint: http://loki-svc:3100/otlp
+  prometheus:
+    endpoint: 0.0.0.0:8889
+```
+
+And each microservice deployment passes the collector address via env:
+
+```yaml
+# kubernetes/directory-service.yml
+env:
+  - name: OTEL_SERVICE_NAME
+    value: directory-service
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: http://otel-collector-svc:4317
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: grpc
+```
+
+## Grafana Data Sources
+
+Once everything is running, connect Grafana to three data sources:
+
+- **Prometheus** — `http://prometheus-svc:9090` (or `http://prometheus:9090` in Docker)
+- **Tempo** — `http://tempo-svc:3100` (enable `Search` and set `Trace to logs` pointing to Loki)
+- **Loki** — `http://loki-svc:3100`
+
+The "Trace to logs" correlation is what ties everything together: when you view a trace in Tempo, Grafana automatically queries Loki for logs with the same `trace_id`.
+
+## What You Get
+
+With this setup, on every request you get:
+
+- **Distributed traces** in Tempo showing exactly which service, method, and DB query was slow
+- **Metrics** in Prometheus for JVM memory, HTTP request rates, and response times dashboards
+- **Structured logs** in Loki with `trace_id` embedded in every line
+- **Log ↔ Trace correlation** in Grafana with a single click
+
+The agent approach means you get all of this without touching your business logic. When you add a new endpoint or a new Redis call, it's automatically instrumented.
+
+## Key Takeaways
+
+- Use the **OTel Java agent** for zero-code instrumentation in Spring Boot
+- Route everything through an **OTel Collector** to decouple services from backends
+- Embed **trace_id in log patterns** via MDC — this is the feature that actually saves debugging time
+- Prometheus scrapes the **collector, not the services** — cleaner architecture
+- The same configuration works for **Docker Compose and Kubernetes** with minimal changes

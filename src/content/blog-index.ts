@@ -9,30 +9,23 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
-    slug: "building-scalable-apis",
-    title: "Building Scalable APIs with Node.js and TypeScript",
-    date: "2025-12-15",
+    slug: "spring-boot-observability-prometheus-grafana-tempo",
+    title:
+      "Setting up Observability in Spring Boot with Prometheus, Grafana and Tempo",
+    date: "2026-03-15",
     description:
-      "A deep dive into patterns and best practices for building production-ready APIs that handle millions of requests.",
-    readingTime: "8 min read",
-    tags: ["Node.js", "TypeScript", "API Design"],
+      "How to instrument Spring Boot 3 microservices with the OTel Java agent and route traces, metrics and logs through an OpenTelemetry Collector to Tempo, Prometheus and Loki — with zero code changes.",
+    readingTime: "10 min read",
+    tags: ["Spring Boot", "Observability", "Kubernetes", "OpenTelemetry"],
   },
   {
-    slug: "typescript-backend-patterns",
-    title: "TypeScript Backend Patterns You Should Know",
-    date: "2025-09-22",
+    slug: "nestjs-jwt-authentication-guards",
+    title:
+      "JWT Authentication in NestJS: Guards, Strategies and Refresh Tokens",
+    date: "2026-02-20",
     description:
-      "Essential design patterns for TypeScript backends: repository pattern, dependency injection, and more.",
-    readingTime: "6 min read",
-    tags: ["TypeScript", "Design Patterns", "Backend"],
-  },
-  {
-    slug: "docker-kubernetes-guide",
-    title: "From Docker to Kubernetes: A Practical Guide",
-    date: "2025-06-10",
-    description:
-      "Step-by-step guide to containerizing your applications and deploying them to Kubernetes in production.",
+      "A full walkthrough of the JWT auth system in a NestJS REST API: global guard pattern, passport strategy, @Public() decorator, @CurrentUser() param decorator, rate limiting and how to extend it with refresh tokens.",
     readingTime: "12 min read",
-    tags: ["Docker", "Kubernetes", "DevOps"],
+    tags: ["NestJS", "TypeScript", "Security", "JWT"],
   },
 ];
