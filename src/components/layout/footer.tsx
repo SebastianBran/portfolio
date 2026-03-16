@@ -1,5 +1,6 @@
 import { NAV_ITEMS } from "@/lib/constants";
 import { socialLinks } from "@/data/social";
+import { Link } from "@tanstack/react-router";
 
 export function Footer() {
   return (
@@ -13,12 +14,13 @@ export function Footer() {
             <ul className="space-y-2">
               {NAV_ITEMS.map((item) => (
                 <li key={item.href}>
-                  <a
-                    href={item.href}
+                  <Link
+                    key={item.href}
+                    to={item.href}
                     className="text-sm text-[var(--muted-foreground)] transition-colors hover:text-accent-500"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
