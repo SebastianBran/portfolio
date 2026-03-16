@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { routeTree } from "./routeTree.gen";
+import { Analytics } from "@vercel/analytics/react";
 import "@/styles/globals.css";
 
 const router = createRouter({
@@ -25,6 +26,7 @@ if (!rootElement.innerHTML) {
     <React.StrictMode>
       <HelmetProvider>
         <ThemeProvider>
+          <Analytics />
           <RouterProvider router={router} />
         </ThemeProvider>
       </HelmetProvider>
