@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { routeTree } from "./routeTree.gen";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import "@/styles/globals.css";
 
 const router = createRouter({
@@ -27,6 +28,7 @@ if (!rootElement.innerHTML) {
       <HelmetProvider>
         <ThemeProvider>
           <Analytics />
+          <SpeedInsights />
           <RouterProvider router={router} />
         </ThemeProvider>
       </HelmetProvider>
